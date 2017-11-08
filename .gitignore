@@ -16,10 +16,14 @@ Examples/Stereo/stereo_kitti
 KeyFrameTrajectory.txt
 Thirdparty/DBoW2/build/
 Thirdparty/DBoW2/lib/
+Thirdparty/DBoW2/bin/
 Thirdparty/g2o/build/
 Thirdparty/g2o/config.h
 Thirdparty/g2o/lib/
 Vocabulary/ORBvoc.txt
+Vocabulary/ORBvoc.bin
+tools/Release/
+tools/Debug/
 build/
 *~
 lib/

@@ -24,6 +24,17 @@ set(SRCS_DUTILS
   DUtils/Random.cpp
   DUtils/Timestamp.cpp)
 
+## Set the output directory for the build executables and libraries
+#SET(DBoW2_RUNTIME_OUTPUT_DIRECTORY ${DBoW2_SOURCE_DIR}/bin CACHE PATH "Target for the binaries")
+#IF(WIN32)
+#  SET(DBoW2_LIBRARY_OUTPUT_DIRECTORY ${DBoW2_SOURCE_DIR}/bin CACHE PATH "Target for the libraries")
+#ELSE(WIN32)
+#  SET(DBoW2_LIBRARY_OUTPUT_DIRECTORY ${DBoW2_SOURCE_DIR}/lib CACHE PATH "Target for the libraries")
+#ENDIF(WIN32)
+#SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${DBoW2_LIBRARY_OUTPUT_DIRECTORY})
+#SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${DBoW2_LIBRARY_OUTPUT_DIRECTORY})
+#SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${DBoW2_RUNTIME_OUTPUT_DIRECTORY})
+
 find_package(OpenCV 3.0 QUIET)
 if(NOT OpenCV_FOUND)
    find_package(OpenCV 2.4.3 QUIET)
@@ -33,9 +44,10 @@ if(NOT OpenCV_FOUND)
 endif()
 
 SET(DBUILD_SHARED true)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 add_library(DBoW2 SHARED ${SRCS_DBOW2} ${SRCS_DUTILS})
+#add_library(DBoW2 SHARED ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 target_link_libraries(DBoW2 ${OpenCV_LIBS})
 
