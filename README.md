@@ -1,4 +1,7 @@
 # ORB_SLAM2_Windows
+
+Binary support added.
+
 Easy build for ORB Slam 2 on Windows
 
 1. Make a directory called build in orbslam-windows/Thirdparty/DBoW2
