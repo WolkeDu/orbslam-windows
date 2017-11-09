@@ -1,8 +1,8 @@
 # ORB_SLAM2_Windows
 
 
-Binary support added.
-2017.11.08
+>Binary support added.
+>2017.11.08
 
 Easy build for ORB Slam 2 on Windows
 
