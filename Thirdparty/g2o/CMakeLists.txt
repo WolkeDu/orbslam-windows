@@ -3,6 +3,14 @@ SET(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 PROJECT(g2o)
 
+SET (g2o_LIB_TYPE SHARED)
+SET(DBUILD_SHARED true)
+option( g2o_STATIC_LIB "Orb-slam lib type" OFF )
+ 
+if(g2o_STATIC_LIB)
+	SET(g2o_LIB_TYPE STATIC)
+endif()
+
 SET(g2o_C_FLAGS)
 SET(g2o_CXX_FLAGS)
 
@@ -12,9 +20,6 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF()
 
 MESSAGE(STATUS "BUILD TYPE:" ${CMAKE_BUILD_TYPE})
-
-SET (G2O_LIB_TYPE SHARED)
-SET(DBUILD_SHARED true)
 
 # There seems to be an issue with MSVC8
 # see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=83
@@ -42,7 +47,14 @@ IF(UNIX)
   ADD_DEFINITIONS(-DUNIX)
   MESSAGE(STATUS "Compiling on Unix")
 ENDIF(UNIX)
-
+IF(WIN32)
+	add_definitions("-DNOMINMAX")
+	add_definitions("-DWINDOWS")
+	add_definitions("-DG2O_EXPORT")
+	add_definitions(-DCOMPILEDWITHC11)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -bigobj")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -bigobj")
+ENDIF()
 # Eigen library parallelise itself, though, presumably due to performance issues
 # OPENMP is experimental. We experienced some slowdown with it
 FIND_PACKAGE(OpenMP)
