@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     for(int ni=0; ni<nImages; ni++)
     {
 		std::cout << "image idx: " << ni<<std::endl;
-		if (251 == ni) {
+		if (244 == ni) {
 			cout << "Pause";
 		}
         // Read image from file

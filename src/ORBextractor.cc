@@ -58,9 +58,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <vector>
 #include <iterator>
-
+#include <iostream>
 #include "ORBextractor.h"
 
 
@@ -78,7 +77,8 @@ const int EDGE_THRESHOLD = 19;
 static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
 {
     int m_01 = 0, m_10 = 0;
-
+    if (cvRound(pt.y) >= image.size.p[0])
+        std::cout << "pause" << std::endl;
     const uchar* center = &image.at<uchar> (cvRound(pt.y), cvRound(pt.x));
 
     // Treat the center line differently, v=0
@@ -477,6 +477,9 @@ static void computeOrientation(const Mat& image, vector<KeyPoint>& keypoints, co
     {
         keypoint->angle = IC_Angle(image, keypoint->pt, umax);
     }
+    //for (int i = 0; i < keypoints.size(); ++i) {
+    //    keypoints[i].angle = IC_Angle(image, keypoints[i].pt, umax);
+    //}
 }
 
 void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNode &n3, ExtractorNode &n4)
@@ -806,10 +809,12 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoin
                 if(maxX>maxBorderX)
                     maxX = maxBorderX;
 
-                vector<cv::KeyPoint> vKeysCell(10000);
+                vector<cv::KeyPoint> vKeysCell;
+				vKeysCell.reserve(100);
                 FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                      vKeysCell,iniThFAST,true);
-
+				if(vKeysCell.size() > 100)
+				    std::cout << "vKeysCell.size: " << vKeysCell.size();
                 if(vKeysCell.empty())
                 {
                     FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
@@ -824,6 +829,11 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoin
                         (*vit).pt.y+=i*hCell;
                         vToDistributeKeys.push_back(*vit);
                     }
+                    //for (int k = 0; k < vKeysCell.size(); ++k) {
+                    //    vKeysCell[k].pt.x += j * wCell;
+                    //    vKeysCell[k].pt.y += i * hCell;
+                    //    vToDistributeKeys.push_back(vKeysCell[k]);
+                    //}
                 }
 
             }

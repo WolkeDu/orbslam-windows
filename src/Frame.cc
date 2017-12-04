@@ -22,6 +22,7 @@
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include <thread>
+#include <sstream>
 
 namespace ORB_SLAM2
 {
@@ -189,7 +190,6 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 
     // ORB extraction
     ExtractORB(0,imGray);
-
     N = mvKeys.size();
 
     if(mvKeys.empty())

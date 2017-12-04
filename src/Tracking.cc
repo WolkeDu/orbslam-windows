@@ -258,8 +258,12 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
         mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
     else
         mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
-
-    Track();
+    try {
+        Track();
+    }
+    catch (const std::exception& e) {
+        cout << "Exception: " << e.what() << endl;
+    }
 
     return mCurrentFrame.mTcw.clone();
 }
@@ -419,6 +423,7 @@ void Tracking::Track()
 
         // If tracking were good, check if we insert a keyframe
         if(bOK)
+        //if((mpMap->KeyFramesInMap()<=5))
         {
             // Update motion model
             if(!mLastFrame.mTcw.empty())
@@ -562,7 +567,6 @@ void Tracking::StereoInitialization()
 
 void Tracking::MonocularInitialization()
 {
-
     if(!mpInitializer)
     {
         // Set Reference Frame
@@ -738,6 +742,7 @@ void Tracking::CreateInitialMapMonocular()
 
 void Tracking::CheckReplacedInLastFrame()
 {
+    std::cout << "Checking Replaced in last frame.." << std::endl;
     for(int i =0; i<mLastFrame.N; i++)
     {
         MapPoint* pMP = mLastFrame.mvpMapPoints[i];
@@ -751,11 +756,13 @@ void Tracking::CheckReplacedInLastFrame()
             }
         }
     }
+    std::cout << "End.." << std::endl;
 }
 
 
 bool Tracking::TrackReferenceKeyFrame()
 {
+    std::cout << "Tracking reference frame.." << std::endl;
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
 
@@ -795,11 +802,13 @@ bool Tracking::TrackReferenceKeyFrame()
         }
     }
 
+    std::cout << "End.." << std::endl;
     return nmatchesMap>=10;
 }
 
 void Tracking::UpdateLastFrame()
 {
+    std::cout << "Updating last frame.." << std::endl;
     // Update pose according to reference keyframe
     KeyFrame* pRef = mLastFrame.mpReferenceKF;
     cv::Mat Tlr = mlRelativeFramePoses.back();
@@ -862,10 +871,12 @@ void Tracking::UpdateLastFrame()
         if(vDepthIdx[j].first>mThDepth && nPoints>100)
             break;
     }
+    std::cout << "End.." << std::endl;
 }
 
 bool Tracking::TrackWithMotionModel()
 {
+    std::cout << "Tracking with motion model.." << std::endl;
     ORBmatcher matcher(0.9,true);
 
     // Update last frame pose according to its reference keyframe
@@ -923,7 +934,7 @@ bool Tracking::TrackWithMotionModel()
         mbVO = nmatchesMap<10;
         return nmatches>20;
     }
-
+    std::cout << "End.." << std::endl;
     return nmatchesMap>=10;
 }
 
@@ -931,7 +942,7 @@ bool Tracking::TrackLocalMap()
 {
     // We have an estimation of the camera pose and some map points tracked in the frame.
     // We retrieve the local map and try to find matches to points in the local map.
-
+    cout << "Tracking local map..." << endl;
     UpdateLocalMap();
 
     SearchLocalPoints();
@@ -961,7 +972,7 @@ bool Tracking::TrackLocalMap()
 
         }
     }
-
+    std::cout << "End.." << std::endl;
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
@@ -976,6 +987,7 @@ bool Tracking::TrackLocalMap()
 
 bool Tracking::NeedNewKeyFrame()
 {
+    cout << "Need new frame?.." << endl;
     if(mbOnlyTracking)
         return false;
 
@@ -1033,7 +1045,7 @@ bool Tracking::NeedNewKeyFrame()
     const bool c1c =  mSensor!=System::MONOCULAR && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
     const bool c2 = ((mnMatchesInliers<nRefMatches*thRefRatio|| bNeedToInsertClose) && mnMatchesInliers>15);
-
+    std::cout << "End.." << std::endl;
     if((c1a||c1b||c1c)&&c2)
     {
         // If the mapping accepts keyframes, insert keyframe.
@@ -1062,6 +1074,7 @@ bool Tracking::NeedNewKeyFrame()
 
 void Tracking::CreateNewKeyFrame()
 {
+    cout << "Creating new frame.." << endl;
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
@@ -1138,6 +1151,7 @@ void Tracking::CreateNewKeyFrame()
 
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
+    std::cout << "End.." << std::endl;
 }
 
 void Tracking::SearchLocalPoints()
@@ -1194,16 +1208,19 @@ void Tracking::SearchLocalPoints()
 
 void Tracking::UpdateLocalMap()
 {
+    std::cout << "Updating local Map.." << std::endl;
     // This is for visualization
     mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
     // Update
     UpdateLocalKeyFrames();
     UpdateLocalPoints();
+    std::cout << "End.." << std::endl;
 }
 
 void Tracking::UpdateLocalPoints()
 {
+    std::cout << "Updating local points.."<<std::endl;
     mvpLocalMapPoints.clear();
 
     for(vector<KeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
@@ -1225,13 +1242,15 @@ void Tracking::UpdateLocalPoints()
             }
         }
     }
+    std::cout << "End.." << std::endl;
 }
 
 
 void Tracking::UpdateLocalKeyFrames()
 {
+    std::cout << "Updating local key frames.." << std::endl;
     // Each map point vote for the keyframes in which it has been observed
-    map<KeyFrame*,int> keyframeCounter;
+    std::map<KeyFrame*,int> keyframeCounter;
     for(int i=0; i<mCurrentFrame.N; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
@@ -1239,9 +1258,9 @@ void Tracking::UpdateLocalKeyFrames()
             MapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
             if(!pMP->isBad())
             {
-                const map<KeyFrame*,size_t> observations = pMP->GetObservations();
+                const std::map<KeyFrame*,size_t> observations = pMP->GetObservations();
                 for(map<KeyFrame*,size_t>::const_iterator it=observations.begin(), itend=observations.end(); it!=itend; it++)
-                    keyframeCounter[it->first]++;
+                    keyframeCounter[it->first]++;//对应关键帧所观察到的3D点数+1
             }
             else
             {
@@ -1277,16 +1296,16 @@ void Tracking::UpdateLocalKeyFrames()
         pKF->mnTrackReferenceForFrame = mCurrentFrame.mnId;
     }
 
-
     // Include also some not-already-included keyframes that are neighbors to already-included keyframes
-    for(vector<KeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
+    //for(vector<KeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
+    for(int tt = 0; tt < mvpLocalKeyFrames.size(); tt++)
     {
         // Limit the number of keyframes
         if(mvpLocalKeyFrames.size()>80)
             break;
 
-        KeyFrame* pKF = *itKF;
-
+        //KeyFrame* pKF = *itKF;
+        KeyFrame* pKF = mvpLocalKeyFrames[tt];
         const vector<KeyFrame*> vNeighs = pKF->GetBestCovisibilityKeyFrames(10);
 
         for(vector<KeyFrame*>::const_iterator itNeighKF=vNeighs.begin(), itEndNeighKF=vNeighs.end(); itNeighKF!=itEndNeighKF; itNeighKF++)
@@ -1296,13 +1315,13 @@ void Tracking::UpdateLocalKeyFrames()
             {
                 if(pNeighKF->mnTrackReferenceForFrame!=mCurrentFrame.mnId)
                 {
+                    cout << "Add Neigh: " << pNeighKF->mnTrackReferenceForFrame << endl;
                     mvpLocalKeyFrames.push_back(pNeighKF);
                     pNeighKF->mnTrackReferenceForFrame=mCurrentFrame.mnId;
                     break;
                 }
             }
         }
-
         const set<KeyFrame*> spChilds = pKF->GetChilds();
         for(set<KeyFrame*>::const_iterator sit=spChilds.begin(), send=spChilds.end(); sit!=send; sit++)
         {
@@ -1311,6 +1330,7 @@ void Tracking::UpdateLocalKeyFrames()
             {
                 if(pChildKF->mnTrackReferenceForFrame!=mCurrentFrame.mnId)
                 {
+                    cout << "Add children: " << pChildKF->mnTrackReferenceForFrame << endl;
                     mvpLocalKeyFrames.push_back(pChildKF);
                     pChildKF->mnTrackReferenceForFrame=mCurrentFrame.mnId;
                     break;
@@ -1323,6 +1343,7 @@ void Tracking::UpdateLocalKeyFrames()
         {
             if(pParent->mnTrackReferenceForFrame!=mCurrentFrame.mnId)
             {
+                cout << "Add parent: " << pParent->mnTrackReferenceForFrame << endl;
                 mvpLocalKeyFrames.push_back(pParent);
                 pParent->mnTrackReferenceForFrame=mCurrentFrame.mnId;
                 break;
@@ -1330,16 +1351,19 @@ void Tracking::UpdateLocalKeyFrames()
         }
 
     }
+    std::cout << "End check neighbors.." << std::endl;
 
     if(pKFmax)
     {
         mpReferenceKF = pKFmax;
         mCurrentFrame.mpReferenceKF = mpReferenceKF;
     }
+    std::cout << "End.." << std::endl;
 }
 
 bool Tracking::Relocalization()
 {
+    std::cout << "Doing relocalization.." << std::endl;
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 
@@ -1488,7 +1512,7 @@ bool Tracking::Relocalization()
             }
         }
     }
-
+    std::cout << "End.." << std::endl;
     if(!bMatch)
     {
         return false;
